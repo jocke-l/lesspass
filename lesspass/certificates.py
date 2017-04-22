@@ -11,7 +11,6 @@ Certificate = NewType('Certificate', SignedPublicKey)
 CertificateChain = NewType('CertificateChain', List[Certificate])
 
 CA = Certificate
-TrustedCAs = NewType('TrustedCAs', List[CA])
 
 get_public_key: Callable[[Certificate], VerifyingKey] = itemgetter(0)
 get_signature: Callable[[Certificate], Signature] = itemgetter(1)
@@ -45,7 +44,3 @@ def verify_certificate_chain(chain: CertificateChain):
     )
 
     return all(verify_certificate(cert, issuer) for cert, issuer in links)
-
-
-def is_self_signed_cert(cert: Certificate):
-    return verify_certificate(cert, cert)
