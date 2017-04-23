@@ -4,6 +4,7 @@ import unittest
 from ed25519 import create_keypair
 
 from lesspass.certificates import create_csr, create_certificate
+from lesspass.certificates import serialize_certificate, deserialize_certificate
 from lesspass.certificates import verify_certificate, verify_certificate_chain
 
 
@@ -42,3 +43,14 @@ class Certificates(unittest.TestCase):
 
         broken_certificate_chain = [end, intermediate2, ca2_cert]
         self.assertFalse(verify_certificate_chain(broken_certificate_chain))
+
+    def test_serialization(self):
+        cert, privkey, pubkey = create_certificate_()
+        signature = privkey.sign(pubkey.to_bytes())
+
+        pubkey_, signature_ = \
+            deserialize_certificate(serialize_certificate(cert))
+
+        pubkey_.verify(signature, pubkey.to_bytes())
+        self.assertEqual(signature, signature_)
+        self.assertEqual(pubkey, pubkey_)
