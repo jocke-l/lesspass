@@ -63,6 +63,5 @@ def serialize_certificate(cert: Certificate) -> bytes:
 
 def deserialize_certificate(serialized_cert: bytes) -> Certificate:
     cert = struct.unpack('32s64s', b64decode(serialized_cert))
-    assert len(cert) == 2
 
     return VerifyingKey(get_public_key(cert)), get_signature(cert)

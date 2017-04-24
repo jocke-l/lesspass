@@ -3,9 +3,10 @@ import unittest
 
 from ed25519 import create_keypair
 
-from lesspass.certificates import create_csr, create_certificate
-from lesspass.certificates import serialize_certificate, deserialize_certificate
-from lesspass.certificates import verify_certificate, verify_certificate_chain
+from phraseless.certificates import create_csr, create_certificate
+from phraseless.certificates import serialize_certificate
+from phraseless.certificates import deserialize_certificate
+from phraseless.certificates import verify_certificate, verify_certificate_chain
 
 
 def create_certificate_(issuer_privkey=None):
