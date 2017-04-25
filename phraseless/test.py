@@ -7,6 +7,7 @@ from phraseless.certificates import create_certificate
 from phraseless.certificates import serialize_certificate
 from phraseless.certificates import deserialize_certificate
 from phraseless.certificates import verify_certificate, verify_certificate_chain
+from phraseless.certificates import verify_challenge
 
 
 def create_certificate_(issuer_privkey=None):
@@ -51,5 +52,16 @@ class Certificates(unittest.TestCase):
         cert, *_ = create_certificate_()
         cert_ = deserialize_certificate(serialize_certificate(cert))
 
-        verify_certificate(cert_, cert)
+        self.assertTrue(verify_certificate(cert_, cert))
+
+    def test_authentication(self):
+        cert, privkey, _ = create_certificate_()
+        _, fake_privkey, _ = create_certificate_()
+
+        challenge = os.urandom(32)
+        signature = privkey.sign(challenge)
+        self.assertTrue(verify_challenge(challenge, signature, cert))
+
+        fake_signature = fake_privkey.sign(challenge)
+        self.assertFalse(verify_challenge(challenge, fake_signature, cert))
 

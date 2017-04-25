@@ -16,7 +16,7 @@ CA = Certificate
 
 def _null_terminated(getter) -> Callable[[Any], bytes]:
     def value(obj) -> bytes:
-        return ctypes.create_string_buffer(getter(obj))
+        return ctypes.create_string_buffer(getter(obj)).value
 
     return value
 
@@ -26,6 +26,15 @@ def create_certificate(name: bytes, pubkey: VerifyingKey,
     signature = privkey.sign(struct.pack('255s32s', name, pubkey.to_bytes()))
 
     return name, pubkey, signature
+
+
+def verify_challenge(challenge: bytes, signature: bytes, cert: Certificate):
+    try:
+        get_public_key(cert).verify(signature, challenge)
+    except (AssertionError, BadSignatureError):
+        return False
+    else:
+        return True
 
 
 def verify_certificate(cert: Certificate, ca: CA) -> bool:
@@ -42,7 +51,7 @@ def verify_certificate(cert: Certificate, ca: CA) -> bool:
         return True
 
 
-def verify_certificate_chain(chain: CertificateChain):
+def verify_certificate_chain(chain: CertificateChain) -> bool:
     links = (
         (chain[i], chain[i + 1])
         for i in range(len(chain) - 1)
@@ -69,6 +78,6 @@ def deserialize_certificate(serialized_cert: bytes) -> Certificate:
             get_signature(cert))
 
 
-get_name: Callable[[Certificate], bytes] = itemgetter(0)
+get_name: Callable[[Certificate], bytes] = _null_terminated(itemgetter(0))
 get_public_key: Callable[[Certificate], PublicKey] = itemgetter(1)
 get_signature: Callable[[Certificate], Signature] = itemgetter(2)
