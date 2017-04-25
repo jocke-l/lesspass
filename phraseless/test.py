@@ -44,6 +44,9 @@ class Certificates(unittest.TestCase):
         broken_certificate_chain = [end, intermediate2, ca2_cert]
         self.assertFalse(verify_certificate_chain(broken_certificate_chain))
 
+        broken_certificate_chain_ = [end, ca_cert]
+        self.assertFalse(verify_certificate_chain(broken_certificate_chain_))
+
     def test_serialization(self):
         cert, *_ = create_certificate_()
         cert_ = deserialize_certificate(serialize_certificate(cert))
