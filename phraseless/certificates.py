@@ -10,6 +10,7 @@ PublicKey = NewType('PublicKey', Union[VerifyingKey, bytes])
 Signature = NewType('Signature', bytes)
 SignedPublicKey = NewType('SignedPublicKey', Tuple[PublicKey, Signature])
 Certificate = NewType('Certificate', Tuple[bytes, PublicKey, Signature])
+EncodedCertificate = NewType('EncodedCertificate', Tuple[str, str, str])
 CertificateChain = NewType('CertificateChain', List[Certificate])
 CA = Certificate
 
@@ -19,6 +20,18 @@ def _null_terminated(getter) -> Callable[[Any], bytes]:
         return ctypes.create_string_buffer(getter(obj)).value
 
     return value
+
+
+def decode_certificate(name: str, public_key: str,
+                       signature: str) -> Certificate:
+    return (name.encode(), VerifyingKey(b64decode(public_key)),
+            b64decode(signature.encode()))
+
+
+def encode_certificate(name: bytes, pubkey: VerifyingKey,
+                       signature: bytes) -> EncodedCertificate:
+    return (name.decode(), b64encode(pubkey.to_bytes()).decode(),
+            b64encode(signature).decode())
 
 
 def create_certificate(name: bytes, pubkey: VerifyingKey,
@@ -52,10 +65,13 @@ def verify_certificate(cert: Certificate, ca: CA) -> bool:
 
 
 def verify_certificate_chain(chain: CertificateChain) -> bool:
-    links = (
-        (chain[i], chain[i + 1])
-        for i in range(len(chain) - 1)
-    )
+    if len(chain) > 1:
+        links = (
+            (chain[i], chain[i + 1])
+            for i in range(len(chain) - 1)
+        )
+    else:
+        links = [(chain[0], chain[0])]
 
     return all(verify_certificate(cert, issuer) for cert, issuer in links)
 
