@@ -64,7 +64,8 @@ def verify_certificate(cert: Certificate, ca: CA) -> bool:
         return True
 
 
-def verify_certificate_chain(chain: CertificateChain) -> bool:
+def verify_certificate_chain(chain: CertificateChain,
+                             trusted: List[Certificate]) -> bool:
     if len(chain) > 1:
         links = (
             (chain[i], chain[i + 1])
@@ -73,7 +74,8 @@ def verify_certificate_chain(chain: CertificateChain) -> bool:
     else:
         links = [(chain[0], chain[0])]
 
-    return all(verify_certificate(cert, issuer) for cert, issuer in links)
+    return (all(verify_certificate(cert, issuer) for cert, issuer in links) and
+            any(verify_certificate(chain[-1], ca) for ca in trusted))
 
 
 def serialize_certificate(cert: Certificate) -> bytes:

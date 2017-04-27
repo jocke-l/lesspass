@@ -41,17 +41,20 @@ class Certificates(unittest.TestCase):
         intermediate2, *_ = create_certificate(ca2_privkey)
 
         certificate_chain = [end, intermediate, ca_cert]
-        self.assertTrue(verify_certificate_chain(certificate_chain))
+        self.assertTrue(verify_certificate_chain(certificate_chain, [ca_cert]))
 
-        self.assertTrue(verify_certificate_chain([ca_cert]))
+        self.assertTrue(verify_certificate_chain([ca_cert], [ca_cert]))
+        self.assertFalse(verify_certificate_chain([ca_cert], [ca2_cert]))
 
         broken_certificate_chain = [end, intermediate2, ca2_cert]
-        self.assertFalse(verify_certificate_chain(broken_certificate_chain))
+        self.assertFalse(verify_certificate_chain(broken_certificate_chain,
+                                                  [ca_cert]))
 
         broken_certificate_chain_ = [end, ca_cert]
-        self.assertFalse(verify_certificate_chain(broken_certificate_chain_))
+        self.assertFalse(verify_certificate_chain(broken_certificate_chain_,
+                                                  [ca_cert]))
 
-        self.assertFalse(verify_certificate_chain([end]))
+        self.assertFalse(verify_certificate_chain([end], [ca_cert]))
 
     def test_serialization(self):
         cert, *_ = create_certificate()
