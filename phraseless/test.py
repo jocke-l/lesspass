@@ -4,16 +4,18 @@ import unittest
 from ed25519 import create_keypair
 
 from phraseless.certificates import create_certificate as create_certificate_
+from phraseless.certificates import deserialize_certificate
+from phraseless.certificates import deserialize_certificate_chain
 from phraseless.certificates import encode_certificate, decode_certificate
 from phraseless.certificates import serialize_certificate
-from phraseless.certificates import deserialize_certificate
+from phraseless.certificates import serialize_certificate_chain
 from phraseless.certificates import verify_certificate, verify_certificate_chain
 from phraseless.certificates import verify_challenge
 
 
 def create_certificate(issuer_privkey=None):
     privkey, pubkey = create_keypair(os.urandom)
-    cert = create_certificate_(b'Test', pubkey, issuer_privkey or privkey)
+    cert = create_certificate_('test', pubkey, issuer_privkey or privkey)
 
     return cert, privkey, pubkey
 
@@ -62,6 +64,16 @@ class Certificates(unittest.TestCase):
 
         self.assertTrue(verify_certificate(cert_, cert))
 
+    def test_chain_serialization(self):
+        cert, *_ = create_certificate()
+        cert2, *_ = create_certificate()
+
+        chain = [cert, cert2]
+        serialized_chain = serialize_certificate_chain(chain)
+        deserialized_chain = deserialize_certificate_chain(serialized_chain)
+
+        self.assertListEqual(deserialized_chain, chain)
+
     def test_authentication(self):
         cert, privkey, _ = create_certificate()
         _, fake_privkey, _ = create_certificate()
@@ -77,4 +89,3 @@ class Certificates(unittest.TestCase):
         cert, *_ = create_certificate()
 
         self.assertEqual(cert, decode_certificate(*encode_certificate(*cert)))
-
